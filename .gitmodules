@@ -1,0 +1,3 @@
+[submodule "MCJESP"]
+	path = MCJESP
+	url = git@github.com:yangyou95/MCJESP.git
