@@ -17,6 +17,9 @@ class MACTP : public SimInterface {
   std::vector<int> _nodes;
   std::unordered_map<int, int> _edges;
   std::unordered_map<std::pair<int, int>, double> _stochastic_edges;
+  std::vector<int> _abs_goals;
+  std::vector<int> _nonabs_goals;
+  std::unordered_map<int, int> _goal_ach;
   double _move_reward, _idle_reward, _service_reward, _bad_action_reward;
   double _discount_factor;
   mutable std::mt19937 _rng;
@@ -65,7 +68,6 @@ class MACTP : public SimInterface {
         _move_reward(move_reward),
         _idle_reward(idle_reward),
         _service_reward(service_reward),
-        _finished_reward(finished_reward),
         _bad_action_reward(bad_action_reward),
         _discount_factor(discount_factor),
         _rng(seed),
@@ -79,7 +81,7 @@ class MACTP : public SimInterface {
   int SampleStartState() override { return initialStateDist.sample(); }
   int GetSizeOfObs() const override { return observationSpace.size(); }
   int GetSizeOfA() const override { return actionSpace.size(); }
-  double GetDiscount() const override { return discount_factor; }
+  double GetDiscount() const override { return _discount_factor; }
   int GetNbAgent() const override { return N; }
 
   int IndividualToJointActionIndex(vector<int> &action_indices) const override {
@@ -99,7 +101,7 @@ class MACTP : public SimInterface {
   }
 
   int GiveLocalActionIndex(int JaI, int agentI) const override {
-    return actionSpace.nthFactorIndex(JoI, agentI);
+    return actionSpace.nthFactorIndex(JaI, agentI);
   }
 
   int GetSizeOfJointObs() const override { return observationSpace.size(); }
