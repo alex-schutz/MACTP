@@ -4,6 +4,7 @@
 #include <SimInterface.h>
 
 #include <random>
+#include <sample.hpp>
 #include <string>
 #include <tuple>
 #include <unordered_map>
