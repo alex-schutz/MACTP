@@ -193,20 +193,7 @@ bool MACTP::validAction(int agent, int action, int state) const {
       return false;
 
   // move action, check if edge exists
-  if (std::find(_edges.begin(), _edges.end(), std::pair(loc, action)) ==
-      _edges.end())
-    return false;  // edge does not exist
-
-  // check if edge is stochastic
-  const auto stoch_edge =
-      loc < action ? std::pair(loc, action) : std::pair(action, loc);
-  const auto stoch_ptr = _stochastic_edges.find(stoch_edge);
-  if (stoch_ptr == _stochastic_edges.end()) return true;  // deterministic edge
-
-  // check if edge is unblocked
-  return stateSpace.getStateFactorElem(
-             state, edge2str(stoch_edge.first, stoch_edge.second)) ==
-         1;  // traversable
+  return nodesAdjacent(loc, action, state);
 }
 
 double MACTP::applyAgentActionToState(int state, int agent, int action,
@@ -243,6 +230,64 @@ bool MACTP::goalAchieved(int goal, int state) const {
     k += stateSpace.getStateFactorElem(state, agentGoal2str(a, goal));
 
   return k >= _goal_ach.at(goal);
+}
+
+bool MACTP::nodesAdjacent(int a, int b, int state) const {
+  if (std::find(_edges.begin(), _edges.end(), std::pair(a, b)) == _edges.end())
+    return false;  // edge does not exist
+
+  // check if edge is stochastic
+  const auto stoch_edge = a < b ? std::pair(a, b) : std::pair(b, a);
+  const auto stoch_ptr = _stochastic_edges.find(stoch_edge);
+  if (stoch_ptr == _stochastic_edges.end()) return true;  // deterministic edge
+
+  // check if edge is unblocked
+  return stateSpace.getStateFactorElem(
+             state, edge2str(stoch_edge.first, stoch_edge.second)) ==
+         1;  // traversable
+}
+
+int MACTP::localObservation(int state, int agent) const {
+  std::map<std::string, int> observation;
+
+  const int loc = stateSpace.getStateFactorElem(state, agentLoc2str(agent));
+  for (int a = 0; a < N; ++a)
+    observation[agentLoc2str(a)] = (a == agent) ? loc : -1;
+
+  // stochastic edge status
+  for (const auto &[edge, _] : _stochastic_edges) {
+    if (nodesAdjacent(loc, edge.first, state) ||
+        nodesAdjacent(loc, edge.second, state)) {
+      const int status = stateSpace.getStateFactorElem(
+          state, edge2str(edge.first, edge.second));
+      observation[edge2str(edge.first, edge.second)] = status;
+    } else
+      observation[edge2str(edge.first, edge.second)] = -1;
+  }
+  // goal service status (per agent)
+  for (int a = 0; a < N; ++a) {
+    if (a == agent) {
+      for (const auto &g : _abs_goals)
+        observation[agentGoal2str(a, g)] =
+            stateSpace.getStateFactorElem(state, agentGoal2str(a, g));
+      for (const auto &g : _nonabs_goals)
+        observation[agentGoal2str(a, g)] =
+            stateSpace.getStateFactorElem(state, agentGoal2str(a, g));
+    } else {
+      for (const auto &g : _abs_goals) observation[agentGoal2str(a, g)] = -1;
+      for (const auto &g : _nonabs_goals) observation[agentGoal2str(a, g)] = -1;
+    }
+  }
+}
+
+int MACTP::communicateObservation(int ob1, int ob2) const {
+  int ob = ob1;
+  const std::vector<int> ob2_components =
+      individualObservationSpace.splitIndices(ob2);
+  int i = 0;
+  for (const auto &[name, _] : individualObservationSpace.map())
+    individualObservationSpace.updateStateFactorIndex(ob, name, i++);
+  return ob;
 }
 
 int MACTP::observeState(int sNext) const {}

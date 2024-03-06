@@ -133,14 +133,17 @@ class MACTP : public SimInterface {
   StateSpace initialiseActionSpace() const;
   DiscreteSample<int> initialiseStartDist(uint64_t seed) const;
 
+  bool nodesAdjacent(int a, int b, int state) const;
   bool goalAchieved(int goal, int state) const;
   bool validAction(int agent, int action, int state) const;
-  double MACTP::applyAgentActionToState(int state, int agent, int action,
-                                        int &sNext) const;
+  double applyAgentActionToState(int state, int agent, int action,
+                                 int &sNext) const;
   double applyActionToState(int sI, int aI, int &sNext) const;
+  int localObservation(int state, int agent) const;
+  int communicateObservation(int ob1, int ob2) const;
   int observeState(int sNext) const;
   bool checkComplete(int sNext) const;
-  std::vector<int> MACTP::computeReachableGoals(int state) const;
+  std::vector<int> computeReachableGoals(int state) const;
 };
 
 }  // namespace CTP
