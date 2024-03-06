@@ -17,7 +17,7 @@ class MACTP : public SimInterface {
  private:
   int N;
   std::vector<int> _nodes;
-  std::unordered_map<int, int> _edges;
+  std::vector<std::pair<int, int>> _edges;
   std::unordered_map<std::pair<int, int>, double> _stochastic_edges;
   std::vector<int> _abs_goals;
   std::vector<int> _nonabs_goals;
@@ -27,6 +27,7 @@ class MACTP : public SimInterface {
   mutable std::mt19937 _rng;
 
   StateSpace stateSpace;
+  StateSpace individualObservationSpace;
   StateSpace observationSpace;
   StateSpace actionSpace;
   DiscreteSample<int> initialStateDist;
@@ -36,10 +37,11 @@ class MACTP : public SimInterface {
    * @brief Construct a new MACTP object
    *
    * @param N number of agents
-   * @param nodes set of node numbers
+   * @param nodes set of (non-negative) node numbers (first node is considered
+   * the origin)
    * @param edges set of edges between nodes (directed, include both ways)
    * @param stochastic_edges edges & probability of being blocked (undirected,
-   * include only one way)
+   * include only one way with pairs in ascending node order)
    * @param abs_goals set of absorbing goals
    * @param nonabs_goals set of non-absorbing goals
    * @param goal_ach <goal, k> where k is the number of times a goal must be
@@ -53,7 +55,7 @@ class MACTP : public SimInterface {
    * @param discount_factor discount factor (within [0, 1])
    * @param seed seed for rng
    */
-  MACTP(int N, std::vector<int> nodes, std::unordered_map<int, int> edges,
+  MACTP(int N, std::vector<int> nodes, std::vector<std::pair<int, int>> edges,
         std::unordered_map<std::pair<int, int>, double> stochastic_edges,
         std::vector<int> abs_goals, std::vector<int> nonabs_goals,
         std::unordered_map<int, int> goal_ach, double move_reward,
@@ -74,6 +76,7 @@ class MACTP : public SimInterface {
         _discount_factor(discount_factor),
         _rng(seed),
         stateSpace(initialiseStateSpace()),
+        individualObservationSpace(initialiseIndividualObservationSpace()),
         observationSpace(initialiseObservationSpace()),
         actionSpace(initialiseActionSpace()),
         initialStateDist(initialiseStartDist(seed)) {}
@@ -125,13 +128,19 @@ class MACTP : public SimInterface {
 
  private:
   StateSpace initialiseStateSpace() const;
+  StateSpace initialiseIndividualObservationSpace() const;
   StateSpace initialiseObservationSpace() const;
   StateSpace initialiseActionSpace() const;
   DiscreteSample<int> initialiseStartDist(uint64_t seed) const;
 
+  bool goalAchieved(int goal, int state) const;
+  bool validAction(int agent, int action, int state) const;
+  double MACTP::applyAgentActionToState(int state, int agent, int action,
+                                        int &sNext) const;
   double applyActionToState(int sI, int aI, int &sNext) const;
   int observeState(int sNext) const;
   bool checkComplete(int sNext) const;
+  std::vector<int> MACTP::computeReachableGoals(int state) const;
 };
 
 }  // namespace CTP
