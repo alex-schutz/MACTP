@@ -5,6 +5,7 @@
 
 #include <random>
 #include <sample.hpp>
+#include <statespace.hpp>
 #include <string>
 #include <tuple>
 #include <unordered_map>
@@ -98,21 +99,21 @@ class MACTP : public SimInterface {
   }
 
   int GiveLocalObsIndex(int JoI, int agentI) const override {
-    return observationSpace.nthFactorIndex(JoI, agentI);
+    return observationSpace.getStateFactorIndex(JoI, std::to_string(agentI));
   }
 
   int GiveLocalActionIndex(int JaI, int agentI) const override {
-    return actionSpace.nthFactorIndex(JaI, agentI);
+    return actionSpace.getStateFactorIndex(JaI, std::to_string(agentI));
   }
 
   int GetSizeOfJointObs() const override { return observationSpace.size(); }
 
   int GetSizeOfLocalObs(int agentI) const override {
-    return observationSpace.at(agentI).size();
+    return observationSpace.map().at(std::to_string(agentI)).size();
   }
 
   int GetSizeOfLocalA(int agentI) const override {
-    return actionSpace.at(agentI).size();
+    return actionSpace.map().at(std::to_string(agentI)).size();
   }
 
   int GetNextNI(int nI, int oI, int size_optimizing_fsc,
