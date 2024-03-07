@@ -60,9 +60,8 @@ class MACTP : public SimInterface {
         std::unordered_map<std::pair<int, int>, double> stochastic_edges,
         std::vector<int> abs_goals, std::vector<int> nonabs_goals,
         std::unordered_map<int, int> goal_ach, double move_reward,
-        double idle_reward, double service_reward, double finished_reward,
-        double bad_action_reward, double discount_factor,
-        uint64_t seed = std::random_device{}())
+        double idle_reward, double service_reward, double bad_action_reward,
+        double discount_factor, uint64_t seed = std::random_device{}())
       : N(N),
         _nodes(nodes),
         _edges(edges),
