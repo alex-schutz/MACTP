@@ -129,13 +129,6 @@ class MACTP : public SimInterface {
     return actionSpace.map().at(std::to_string(agentI)).size();
   }
 
-  int GetNextNI(int nI, int oI, int size_optimizing_fsc,
-                std::vector<std::vector<std::vector<double>>> &Eta_fsc);
-
-  double PolicyEvaluation(
-      std::vector<std::vector<std::vector<double>>> &eta_fsc_optimizing_agent,
-      std::vector<FSCNode> &FscNodes_optimizing_agent) override;
-
  private:
   StateSpace initialiseStateSpace() const;
   StateSpace initialiseIndividualObservationSpace() const;
