@@ -39,9 +39,10 @@ class MACTP : public SimInterface {
    * @param N number of agents
    * @param nodes set of (non-negative) node numbers (first node is considered
    * the origin)
-   * @param edges set of edges between nodes (directed, include both ways)
-   * @param stochastic_edges edges & probability of being blocked (undirected,
+   * @param edges set of all edges between nodes (undirected,
    * include only one way with pairs in ascending node order)
+   * @param stochastic_edges bloackable edges & probability of being blocked
+   * (undirected, include only one way with pairs in ascending node order)
    * @param abs_goals set of absorbing goals
    * @param nonabs_goals set of non-absorbing goals
    * @param goal_ach <goal, k> where k is the number of times a goal must be
@@ -133,7 +134,8 @@ class MACTP : public SimInterface {
   StateSpace initialiseActionSpace() const;
   DiscreteSample<int> initialiseStartDist(uint64_t seed) const;
 
-  /// @brief Return true if a and b are connected by an unblocked edge in state
+  /// @brief Return true if a and b are connected by an unblocked edge in state.
+  /// A node is considered adjacent to itself
   bool nodesAdjacent(int a, int b, int state) const;
   /// @brief Return true if the goal has been serviced by enough agents
   bool goalAchieved(int goal, int state) const;
@@ -163,5 +165,8 @@ class MACTP : public SimInterface {
   std::vector<int> computeReachableGoals(int state) const;
   /// @brief Return true if the given node is a goal node
   bool isGoal(int loc) const;
+  ///@brief Return true if dest is reachable from source
+  bool reachable(int source, int dest, int state) const;
+};
 
 }  // namespace CTP

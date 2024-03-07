@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <simulator.hpp>
+#include <unordered_set>
 
 namespace CTP {
 
@@ -75,8 +76,8 @@ double MACTP::PolicyEvaluation(
 
 static std::string agentLoc2str(int a) { return "a" + std::to_string(a); }
 
-static std::string edge2str(int i, int j) {
-  return "e" + std::to_string(i) + "_" + std::to_string(j);
+static std::string edge2str(std::pair<int, int> e) {
+  return "e" + std::to_string(e.first) + "_" + std::to_string(e.second);
 }
 
 static std::string agentGoal2str(int agent, int goal) {
@@ -90,7 +91,7 @@ StateSpace MACTP::initialiseStateSpace() const {
 
   // stochastic edge status
   for (const auto &[edge, _] : _stochastic_edges)
-    state_factors[edge2str(edge.first, edge.second)] = {0, 1};
+    state_factors[edge2str(edge)] = {0, 1};
 
   // goal service status (per agent)
   for (int a = 0; a < N; ++a) {
@@ -112,7 +113,7 @@ StateSpace MACTP::initialiseIndividualObservationSpace() const {
 
   // stochastic edge status
   for (const auto &[edge, _] : _stochastic_edges)
-    observation_factors[edge2str(edge.first, edge.second)] = {0, 1, -1};
+    observation_factors[edge2str(edge)] = {0, 1, -1};
 
   // goal service status (per agent)
   for (int a = 0; a < N; ++a) {
@@ -172,7 +173,7 @@ DiscreteSample<int> MACTP::initialiseStartDist(uint64_t seed) const {
     int j = 0;
     for (const auto &[edge, prob] : _stochastic_edges) {
       const bool traversable = static_cast<bool>(i & (1 << j));
-      status[edge2str(edge.first, edge.second)] = traversable;
+      status[edge2str(edge)] = traversable;
       probability *= traversable ? (1.0f - prob) : prob;
       ++j;
     }
@@ -244,17 +245,17 @@ bool MACTP::goalAchieved(int goal, int state) const {
 }
 
 bool MACTP::nodesAdjacent(int a, int b, int state) const {
-  if (std::find(_edges.begin(), _edges.end(), std::pair(a, b)) == _edges.end())
+  if (a == b) return true;
+  const auto edge = a < b ? std::pair(a, b) : std::pair(b, a);
+  if (std::find(_edges.begin(), _edges.end(), edge) == _edges.end())
     return false;  // edge does not exist
 
   // check if edge is stochastic
-  const auto stoch_edge = a < b ? std::pair(a, b) : std::pair(b, a);
-  const auto stoch_ptr = _stochastic_edges.find(stoch_edge);
+  const auto stoch_ptr = _stochastic_edges.find(edge);
   if (stoch_ptr == _stochastic_edges.end()) return true;  // deterministic edge
 
   // check if edge is unblocked
-  return stateSpace.getStateFactorElem(
-             state, edge2str(stoch_edge.first, stoch_edge.second)) ==
+  return stateSpace.getStateFactorElem(state, edge2str(edge)) ==
          1;  // traversable
 }
 
@@ -267,13 +268,12 @@ int MACTP::localObservation(int state, int agent) const {
 
   // stochastic edge status
   for (const auto &[edge, _] : _stochastic_edges) {
-    if (nodesAdjacent(loc, edge.first, state) ||
-        nodesAdjacent(loc, edge.second, state)) {
-      const int status = stateSpace.getStateFactorElem(
-          state, edge2str(edge.first, edge.second));
-      observation[edge2str(edge.first, edge.second)] = status;
-    } else
-      observation[edge2str(edge.first, edge.second)] = -1;
+    if (loc == edge.first || loc == edge.second) {
+      const int status = stateSpace.getStateFactorElem(state, edge2str(edge));
+      observation[edge2str(edge)] = status;
+    } else {
+      observation[edge2str(edge)] = -1;
+    }
   }
   // goal service status (per agent)
   for (int a = 0; a < N; ++a) {
@@ -350,6 +350,35 @@ bool MACTP::checkComplete(int state) const {
   return true;
 }
 
-std::vector<int> MACTP::computeReachableGoals(int state) const {}
+bool MACTP::reachable(int source, int dest, int state) const {
+  std::unordered_set<int> toDoSet = {source};
+  std::unordered_set<int> doneSet;
+  while (!toDoSet.empty()) {
+    const int node = *toDoSet.begin();
+    toDoSet.erase(toDoSet.begin());
+    doneSet.insert(node);
+    for (const auto &n : _nodes) {
+      if (n == node) continue;
+      if (!nodesAdjacent(n, node, state)) continue;
+      if (n == dest) return true;
+      if (std::find(doneSet.cbegin(), doneSet.cend(), n) == doneSet.cend()) {
+        toDoSet.insert(n);
+      }
+    }
+  }
+
+  return false;
+}
+
+std::vector<int> MACTP::computeReachableGoals(int state) const {
+  std::vector<int> all_goals = _abs_goals;
+  all_goals.insert(all_goals.end(), _nonabs_goals.begin(), _nonabs_goals.end());
+
+  std::vector<int> reachable_goals;
+  for (const auto &g : all_goals)
+    if (reachable(_nodes[0], g, state)) reachable_goals.push_back(g);
+
+  return reachable_goals;
+}
 
 }  // namespace CTP
