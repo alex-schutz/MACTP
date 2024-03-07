@@ -181,16 +181,27 @@ DiscreteSample<int> MACTP::initialiseStartDist(uint64_t seed) const {
   return DiscreteSample<int>(initial_states);
 }
 
+bool MACTP::isGoal(int loc) const {
+  if (std::find(_abs_goals.cbegin(), _abs_goals.cend(), loc) !=
+      _abs_goals.cend())
+    return true;
+  return (std::find(_nonabs_goals.cbegin(), _nonabs_goals.cend(), loc) !=
+          _nonabs_goals.cend());
+}
+
 bool MACTP::validAction(int agent, int action, int state) const {
   int loc = stateSpace.getStateFactorElem(state, agentLoc2str(agent));
   if (loc == action) return true;  // idle always allowed
-  if (action == -1)                // service goal only if not already serviced
-    return stateSpace.getStateFactorElem(state, agentGoal2str(agent, loc)) == 0;
 
-  // check if agent is stuck in absorbing goal (cannot move)
+  // check if agent is stuck in absorbing goal (cannot move/service other goals)
   for (const auto &g : _abs_goals)
     if (stateSpace.getStateFactorElem(state, agentGoal2str(agent, g)) == 1)
       return false;
+
+  if (action == -1) {  // service goal only if not already serviced
+    if (!isGoal(loc)) return false;
+    return stateSpace.getStateFactorElem(state, agentGoal2str(agent, loc)) == 0;
+  }
 
   // move action, check if edge exists
   return nodesAdjacent(loc, action, state);
@@ -320,9 +331,24 @@ int MACTP::observeState(int state) const {
   return observationSpace.combineIndices(agent_obs);
 }
 
-// all REACHABLE goals complete
-// all agents stuck in absorbing goals
-bool MACTP::checkComplete(int state) const {}
+bool MACTP::checkComplete(int state) const {
+  const std::vector<int> reachable_goals = computeReachableGoals(state);
+  std::vector<int> unachieved_goals;
+  for (const auto &g : reachable_goals)
+    if (!goalAchieved(g, state)) unachieved_goals.push_back(g);
+  if (unachieved_goals.empty()) return true;  // all reachable goals achieved
+
+  for (const auto &g : unachieved_goals) {
+    for (int a = 0; a < N; ++a) {
+      // check if any agent could still service the unachieved goal if it was
+      // there (has not already serviced this goal or an absorbing goal)
+      const int locState =
+          stateSpace.updateStateFactor(state, agentLoc2str(a), g);
+      if (validAction(a, -1, locState)) return false;
+    }
+  }
+  return true;
+}
 
 std::vector<int> MACTP::computeReachableGoals(int state) const {}
 

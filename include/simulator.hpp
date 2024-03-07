@@ -161,6 +161,7 @@ class MACTP : public SimInterface {
   bool checkComplete(int state) const;
   /// @brief Compute the set of goals which are reachable from the origin
   std::vector<int> computeReachableGoals(int state) const;
-};
+  /// @brief Return true if the given node is a goal node
+  bool isGoal(int loc) const;
 
 }  // namespace CTP
