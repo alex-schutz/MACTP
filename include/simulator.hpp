@@ -140,9 +140,11 @@ class MACTP : public SimInterface {
                                  int &sNext) const;
   double applyActionToState(int sI, int aI, int &sNext) const;
   int localObservation(int state, int agent) const;
+  std::vector<std::vector<bool>> communicationAvailable(
+      const std::vector<int> &locs, int state) const;
   int communicateObservation(int ob1, int ob2) const;
-  int observeState(int sNext) const;
-  bool checkComplete(int sNext) const;
+  int observeState(int state) const;
+  bool checkComplete(int state) const;
   std::vector<int> computeReachableGoals(int state) const;
 };
 

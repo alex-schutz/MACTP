@@ -290,11 +290,39 @@ int MACTP::communicateObservation(int ob1, int ob2) const {
   return ob;
 }
 
-int MACTP::observeState(int sNext) const {}
+std::vector<std::vector<bool>> MACTP::communicationAvailable(
+    const std::vector<int> &locs, int state) const {
+  std::vector<std::vector<bool>> comms;
+  for (const auto &ei : locs) {
+    std::vector<bool> comms_i;
+    for (const auto &ej : locs) comms_i.push_back(nodesAdjacent(ei, ej, state));
+    comms.push_back(comms_i);
+  }
+  return comms;
+}
+
+int MACTP::observeState(int state) const {
+  std::vector<int> agent_locs;
+  for (int a = 0; a < N; ++a)
+    agent_locs.push_back(stateSpace.getStateFactorElem(state, agentLoc2str(a)));
+  const auto comms = communicationAvailable(agent_locs, state);
+
+  std::vector<int> local_obs;
+  for (int a = 0; a < N; ++a) local_obs.push_back(localObservation(state, a));
+
+  std::vector<int> agent_obs = local_obs;
+  for (int i = 0; i < N; ++i) {
+    for (int j = 0; j < N; ++j) {
+      if (comms[i][j])
+        agent_obs[i] = communicateObservation(local_obs[i], local_obs[j]);
+    }
+  }
+  return observationSpace.combineIndices(agent_obs);
+}
 
 // all REACHABLE goals complete
 // all agents stuck in absorbing goals
-bool MACTP::checkComplete(int sNext) const {}
+bool MACTP::checkComplete(int state) const {}
 
 std::vector<int> MACTP::computeReachableGoals(int state) const {}
 
