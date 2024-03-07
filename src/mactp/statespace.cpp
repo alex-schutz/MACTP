@@ -1,6 +1,8 @@
-#include "statespace.hpp"
+// Copyright Alex Schutz 2023-24
 
 #include <assert.h>
+
+#include <mactp/statespace.hpp>
 
 namespace CTP {
 

@@ -1,7 +1,7 @@
 // Copyright Alex Schutz 2023-24
 
 #include <algorithm>
-#include <simulator.hpp>
+#include <mactp/simulator.hpp>
 #include <unordered_set>
 
 namespace CTP {

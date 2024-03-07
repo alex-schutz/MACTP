@@ -1,7 +1,7 @@
 // Copyright Alex Schutz 2024
 
 #pragma once
-#include <index_map.hpp>
+#include <mactp/index_map.hpp>
 #include <map>
 #include <string>
 #include <unordered_set>
