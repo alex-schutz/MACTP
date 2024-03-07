@@ -110,7 +110,7 @@ int main() {
     mcjesp.Plan(i, outlogs);
     vector<FSC> final_fscs = mcjesp.GetFinalFSCs();
     for (size_t j = 0; j < final_fscs.size(); j++) {
-      string fsc_path = "./TempFiles/" + decpomdp_name + "_fsc" + to_string(j) +
+      string fsc_path = "./" + decpomdp_name + "_fsc" + to_string(j) +
                         "timeout" + to_string(timeout) + "maxN" +
                         to_string(max_fsc_node_size) + "restart" + to_string(i);
       final_fscs[j].ExportFSC(fsc_path);
