@@ -22,7 +22,7 @@ struct pairhash {
 };
 
 class MACTP : public SimInterface {
- public:  // RESTORE
+ private:
   int N;
   std::vector<int> _nodes;
   std::vector<std::pair<int, int>> _edges;
@@ -136,7 +136,7 @@ class MACTP : public SimInterface {
       std::vector<std::vector<std::vector<double>>> &eta_fsc_optimizing_agent,
       std::vector<FSCNode> &FscNodes_optimizing_agent) override;
 
-  //  private: RESTORE
+ private:
   StateSpace initialiseStateSpace() const;
   StateSpace initialiseIndividualObservationSpace() const;
   StateSpace initialiseObservationSpace() const;
