@@ -13,12 +13,20 @@
 
 namespace CTP {
 
+struct pairhash {
+ public:
+  template <typename T, typename U>
+  std::size_t operator()(const std::pair<T, U> &x) const {
+    return std::hash<T>()(x.first) ^ std::hash<U>()(x.second);
+  }
+};
+
 class MACTP : public SimInterface {
  private:
   int N;
   std::vector<int> _nodes;
   std::vector<std::pair<int, int>> _edges;
-  std::unordered_map<std::pair<int, int>, double> _stochastic_edges;
+  std::unordered_map<std::pair<int, int>, double, pairhash> _stochastic_edges;
   std::vector<int> _abs_goals;
   std::vector<int> _nonabs_goals;
   std::unordered_map<int, int> _goal_ach;
@@ -57,7 +65,8 @@ class MACTP : public SimInterface {
    * @param seed seed for rng
    */
   MACTP(int N, std::vector<int> nodes, std::vector<std::pair<int, int>> edges,
-        std::unordered_map<std::pair<int, int>, double> stochastic_edges,
+        std::unordered_map<std::pair<int, int>, double, pairhash>
+            stochastic_edges,
         std::vector<int> abs_goals, std::vector<int> nonabs_goals,
         std::unordered_map<int, int> goal_ach, double move_reward,
         double idle_reward, double service_reward, double bad_action_reward,
@@ -81,7 +90,7 @@ class MACTP : public SimInterface {
         actionSpace(initialiseActionSpace()),
         initialStateDist(initialiseStartDist(seed)) {}
 
-  tuple<int, int, double, bool> Step(int sI, int aI) override;
+  std::tuple<int, int, double, bool> Step(int sI, int aI) override;
 
   int SampleStartState() override { return initialStateDist.sample(); }
   int GetSizeOfObs() const override { return observationSpace.size(); }
@@ -89,15 +98,16 @@ class MACTP : public SimInterface {
   double GetDiscount() const override { return _discount_factor; }
   int GetNbAgent() const override { return N; }
 
-  int IndividualToJointActionIndex(vector<int> &action_indices) const override {
+  int IndividualToJointActionIndex(
+      std::vector<int> &action_indices) const override {
     return actionSpace.combineIndices(action_indices);
   }
 
-  vector<int> JointToIndividualObsIndices(int JoI) const override {
+  std::vector<int> JointToIndividualObsIndices(int JoI) const override {
     return observationSpace.splitIndices(JoI);
   }
 
-  vector<int> JointToIndividualActionIndices(int JaI) const override {
+  std::vector<int> JointToIndividualActionIndices(int JaI) const override {
     return actionSpace.splitIndices(JaI);
   }
 
@@ -120,11 +130,11 @@ class MACTP : public SimInterface {
   }
 
   int GetNextNI(int nI, int oI, int size_optimizing_fsc,
-                vector<vector<vector<double>>> &Eta_fsc);
+                std::vector<std::vector<std::vector<double>>> &Eta_fsc);
 
   double PolicyEvaluation(
-      vector<vector<vector<double>>> &eta_fsc_optimizing_agent,
-      vector<FSCNode> &FscNodes_optimizing_agent) override;
+      std::vector<std::vector<std::vector<double>>> &eta_fsc_optimizing_agent,
+      std::vector<FSCNode> &FscNodes_optimizing_agent) override;
 
  private:
   StateSpace initialiseStateSpace() const;

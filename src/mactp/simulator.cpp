@@ -6,7 +6,7 @@
 
 namespace CTP {
 
-tuple<int, int, double, bool> MACTP::Step(int sI, int aI) {
+std::tuple<int, int, double, bool> MACTP::Step(int sI, int aI) {
   int sNext;
   const double reward = applyActionToState(sI, aI, sNext);
   const int oI = observeState(sNext);
@@ -16,7 +16,7 @@ tuple<int, int, double, bool> MACTP::Step(int sI, int aI) {
 }
 
 int MACTP::GetNextNI(int nI, int oI, int size_optimizing_fsc,
-                     vector<vector<vector<double>>> &Eta_fsc) {
+                     std::vector<std::vector<std::vector<double>>> &Eta_fsc) {
   std::uniform_real_distribution<double> unif(0, 1);
   double random_p = unif(_rng);
   double sum_p = 0.0;
@@ -33,8 +33,8 @@ int MACTP::GetNextNI(int nI, int oI, int size_optimizing_fsc,
 }
 
 double MACTP::PolicyEvaluation(
-    vector<vector<vector<double>>> &eta_fsc_optimizing_agent,
-    vector<FSCNode> &FscNodes_optimizing_agent) {
+    std::vector<std::vector<std::vector<double>>> &eta_fsc_optimizing_agent,
+    std::vector<FSCNode> &FscNodes_optimizing_agent) {
   double sum_accumlated_rewards = 0.0;
   int restart_evaluation = 1;
   double discount = GetDiscount();
@@ -43,7 +43,7 @@ double MACTP::PolicyEvaluation(
   int size_optimizing_fsc = FscNodes_optimizing_agent.size();
   double average_acc_rewards = 0;
 
-  tuple<int, int, double, bool> res_step;
+  std::tuple<int, int, double, bool> res_step;
   int i = 0;
   while (i < restart_evaluation) {
     i += 1;
@@ -57,11 +57,11 @@ double MACTP::PolicyEvaluation(
     while (total_discount > epsilon) {
       int aI = FscNodes_optimizing_agent[nI_optimizing_agent].best_aI;
       res_step = Step(eI, aI);
-      double reward = get<2>(res_step);
+      double reward = std::get<2>(res_step);
       temp_res += reward * total_discount;
       total_discount *= discount;
-      eI = get<0>(res_step);
-      oI = get<1>(res_step);
+      eI = std::get<0>(res_step);
+      oI = std::get<1>(res_step);
       nI_optimizing_agent =
           GetNextNI(nI_optimizing_agent, oI, size_optimizing_fsc,
                     eta_fsc_optimizing_agent);
@@ -289,6 +289,7 @@ int MACTP::localObservation(int state, int agent) const {
       for (const auto &g : _nonabs_goals) observation[agentGoal2str(a, g)] = -1;
     }
   }
+  return individualObservationSpace.stateIndex(observation);
 }
 
 int MACTP::communicateObservation(int ob1, int ob2) const {
