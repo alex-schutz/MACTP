@@ -4,6 +4,16 @@
 
 using namespace CTP;
 
+std::ostream &operator<<(std::ostream &os,
+                         const std::map<std::string, int> &myMap) {
+  os << "{\n";
+  for (const auto &pair : myMap) {
+    os << pair.first << ": " << pair.second << ",\n";
+  }
+  os << "}";
+  return os;
+}
+
 int main() {
   // 6 nodes, connected in a hexagon
   const std::vector<int> nodes = {0, 1, 2, 3, 4, 5};

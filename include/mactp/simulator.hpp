@@ -22,7 +22,7 @@ struct pairhash {
 };
 
 class MACTP : public SimInterface {
- private:
+ public:  // RESTORE
   int N;
   std::vector<int> _nodes;
   std::vector<std::pair<int, int>> _edges;
@@ -136,7 +136,7 @@ class MACTP : public SimInterface {
       std::vector<std::vector<std::vector<double>>> &eta_fsc_optimizing_agent,
       std::vector<FSCNode> &FscNodes_optimizing_agent) override;
 
- private:
+  //  private: RESTORE
   StateSpace initialiseStateSpace() const;
   StateSpace initialiseIndividualObservationSpace() const;
   StateSpace initialiseObservationSpace() const;
@@ -160,9 +160,8 @@ class MACTP : public SimInterface {
   /// @brief Return the index of the local observation of agent in state
   int localObservation(int state, int agent) const;
   /// @brief Return a matrix indicating if agent i and agent j are able to
-  /// communicate given their locations and the state
-  std::vector<std::vector<bool>> communicationAvailable(
-      const std::vector<int> &locs, int state) const;
+  /// communicate given the state
+  std::vector<std::vector<bool>> communicationAvailable(int state) const;
   /// @brief Return the individual observation number produced by combining
   /// observations ob1 and ob2
   int communicateObservation(int ob1, int ob2) const;

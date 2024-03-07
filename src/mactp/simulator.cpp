@@ -237,6 +237,7 @@ double MACTP::applyActionToState(int sI, int aI, int &sNext) const {
 }
 
 bool MACTP::goalAchieved(int goal, int state) const {
+  if (!isGoal(goal)) return false;
   int k = 0;
   for (int a = 0; a < N; ++a)
     k += stateSpace.getStateFactorElem(state, agentGoal2str(a, goal));
@@ -293,40 +294,39 @@ int MACTP::localObservation(int state, int agent) const {
 }
 
 int MACTP::communicateObservation(int ob1, int ob2) const {
-  int ob = ob1;
-  const std::vector<int> ob2_components =
-      individualObservationSpace.splitIndices(ob2);
-  int i = 0;
-  for (const auto &[name, _] : individualObservationSpace.map())
-    individualObservationSpace.updateStateFactorIndex(ob, name, i++);
-  return ob;
+  std::map<std::string, int> ob = individualObservationSpace.at(ob1);
+  for (auto &[name, f] : ob)
+    if (f == -1) f = individualObservationSpace.getStateFactorElem(ob2, name);
+  return individualObservationSpace.stateIndex(ob);
 }
 
-std::vector<std::vector<bool>> MACTP::communicationAvailable(
-    const std::vector<int> &locs, int state) const {
+std::vector<std::vector<bool>> MACTP::communicationAvailable(int state) const {
+  std::vector<int> agent_locs;
+  for (int a = 0; a < N; ++a)
+    agent_locs.push_back(stateSpace.getStateFactorElem(state, agentLoc2str(a)));
+
   std::vector<std::vector<bool>> comms;
-  for (const auto &ei : locs) {
+  for (const auto &ei : agent_locs) {
     std::vector<bool> comms_i;
-    for (const auto &ej : locs) comms_i.push_back(nodesAdjacent(ei, ej, state));
+    for (const auto &ej : agent_locs)
+      comms_i.push_back(nodesAdjacent(ei, ej, state));
     comms.push_back(comms_i);
   }
   return comms;
 }
 
 int MACTP::observeState(int state) const {
-  std::vector<int> agent_locs;
-  for (int a = 0; a < N; ++a)
-    agent_locs.push_back(stateSpace.getStateFactorElem(state, agentLoc2str(a)));
-  const auto comms = communicationAvailable(agent_locs, state);
+  const auto comms = communicationAvailable(state);
 
   std::vector<int> local_obs;
   for (int a = 0; a < N; ++a) local_obs.push_back(localObservation(state, a));
 
   std::vector<int> agent_obs = local_obs;
-  for (int i = 0; i < N; ++i) {
-    for (int j = 0; j < N; ++j) {
-      if (comms[i][j])
-        agent_obs[i] = communicateObservation(local_obs[i], local_obs[j]);
+  for (int ai = 0; ai < N; ++ai) {
+    for (int aj = 0; aj < N; ++aj) {
+      if (ai == aj) continue;
+      if (comms[ai][aj])
+        agent_obs[ai] = communicateObservation(agent_obs[ai], local_obs[aj]);
     }
   }
   return observationSpace.combineIndices(agent_obs);
