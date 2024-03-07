@@ -133,18 +133,33 @@ class MACTP : public SimInterface {
   StateSpace initialiseActionSpace() const;
   DiscreteSample<int> initialiseStartDist(uint64_t seed) const;
 
+  /// @brief Return true if a and b are connected by an unblocked edge in state
   bool nodesAdjacent(int a, int b, int state) const;
+  /// @brief Return true if the goal has been serviced by enough agents
   bool goalAchieved(int goal, int state) const;
+  /// @brief Return true if agent can perform action in state
   bool validAction(int agent, int action, int state) const;
+  /// @brief Return the reward for agent performing action in state. Also return
+  /// the next state sNext
   double applyAgentActionToState(int state, int agent, int action,
                                  int &sNext) const;
+  /// @brief Return the reward for performing joint action aI in state sI. Also
+  /// return the next state sNext
   double applyActionToState(int sI, int aI, int &sNext) const;
+  /// @brief Return the index of the local observation of agent in state
   int localObservation(int state, int agent) const;
+  /// @brief Return a matrix indicating if agent i and agent j are able to
+  /// communicate given their locations and the state
   std::vector<std::vector<bool>> communicationAvailable(
       const std::vector<int> &locs, int state) const;
+  /// @brief Return the individual observation number produced by combining
+  /// observations ob1 and ob2
   int communicateObservation(int ob1, int ob2) const;
+  /// @brief Return the observation number given the state
   int observeState(int state) const;
+  /// @brief Return true if all goals have been achieved or cannot be achieved
   bool checkComplete(int state) const;
+  /// @brief Compute the set of goals which are reachable from the origin
   std::vector<int> computeReachableGoals(int state) const;
 };
 
