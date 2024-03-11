@@ -169,9 +169,10 @@ double MACTP::applyAgentActionToState(int state, int agent, int action,
 double MACTP::applyActionToState(int sI, int aI, int &sNext) const {
   double reward = 0;
   int nextState = sI;
-  const std::vector<int> actions = actionSpace.splitIndices(aI);
   for (int a = 0; a < N; ++a)
-    reward += applyAgentActionToState(nextState, a, actions[a], nextState);
+    reward += applyAgentActionToState(
+        nextState, a, actionSpace.getStateFactorElem(aI, std::to_string(a)),
+        nextState);
 
   sNext = nextState;
   return reward;
