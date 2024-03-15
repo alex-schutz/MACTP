@@ -16,4 +16,10 @@ std::vector<std::tuple<int, double, int>> PathToTerminal::getEdges(
   return edges;
 }
 
+std::tuple<int, double> PathToTerminal::path(int source, int max_depth) const {
+  const auto [costs, pred] = calculate(source, max_depth);
+  const std::vector<std::pair<int, int>> p = reconstructPath(-1, pred);
+  return {p.at(p.size() - 2).first, -costs.at(-1)};
+}
+
 }  // namespace CTP

@@ -15,11 +15,11 @@ class InfMap {
  public:
   InfMap() = default;
   const std::unordered_map<int, double>& map() const { return _map; }
-  double& operator[](int key) { return _map[key]; }
-  const double& operator[](int key) const {
-    const static double inf = std::numeric_limits<double>::infinity();
+  double& operator[](int key) {
     auto it = _map.find(key);
-    return (it != _map.end()) ? it->second : inf;
+    if (it != _map.end()) return it->second;
+    return _map.insert({key, std::numeric_limits<double>::infinity()})
+        .first->second;
   }
   auto begin() { return _map.begin(); }
   auto end() { return _map.end(); }
@@ -36,18 +36,15 @@ class InfMap {
  */
 class ShortestPathFasterAlgorithm {
  private:
-  int source;
-  InfMap d;
-  std::unordered_map<int, bool> inQueue;
-  std::unordered_map<int, int> count;
-  std::unordered_map<int, std::pair<int, int>> predecessor;
+  mutable InfMap d;
+  mutable std::unordered_map<int, bool> inQueue;
+  mutable std::unordered_map<int, int> depth;
+  mutable std::unordered_map<int, std::pair<int, int>> predecessor;
 
-  void calculate(int N);
+  void initParams() const;
 
  public:
-  ShortestPathFasterAlgorithm(int source, int max_depth) : source(source) {
-    calculate(max_depth);
-  }
+  ShortestPathFasterAlgorithm() = default;
 
   /**
    * @brief Get the edges and weights out of `node`.
@@ -60,12 +57,21 @@ class ShortestPathFasterAlgorithm {
   virtual std::vector<std::tuple<int, double, int>> getEdges(
       int node) const = 0;
 
-  /// @brief Return the solution of the shortest path between source and each
-  /// reachable node
-  const std::unordered_map<int, double>& solution() const { return d.map(); }
+  /**
+   * @brief Calculate the shortest path between source and each node up to
+   * maximum depth N
+   *
+   * Returns a map of <destination, cost> pairs and a map of <node,
+   * <predecessor_node, edge>> pairs. Use the latter with `reconstructPath`.
+   */
+  std::tuple<std::unordered_map<int, double>,
+             std::unordered_map<int, std::pair<int, int>>>
+  calculate(int source, int N) const;
 
   /// @brief Reconstruct path of <node, next_edge> to target
-  std::vector<std::pair<int, int>> reconstructPath(int target) const;
+  std::vector<std::pair<int, int>> reconstructPath(
+      int target,
+      const std::unordered_map<int, std::pair<int, int>>& paths) const;
 };
 
 }  // namespace CTP

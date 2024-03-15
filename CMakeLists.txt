@@ -29,3 +29,6 @@ MCJESP/src/TreeNode.cpp
 MCJESP/src/Utils.cpp
 )
 add_library(mcjesp_library SHARED ${MCJESP_SOURCE})
+
+enable_testing()
+add_subdirectory(tests)

@@ -14,17 +14,11 @@ namespace CTP {
  */
 class PathToTerminal : public ShortestPathFasterAlgorithm {
  public:
-  PathToTerminal(SimInterface* sim, int source, int max_depth)
-      : ShortestPathFasterAlgorithm(source, max_depth), sim(sim) {}
+  PathToTerminal(SimInterface* sim) : sim(sim) {}
 
-  // Highest reward path from a given state to a terminal state
-  double path() const { return -solution().at(-1); }
-
-  // The terminal state with the highest reward reachable from this state
-  int terminalState() const {
-    const std::vector<std::pair<int, int>> p = reconstructPath(-1);
-    return p.at(p.size() - 2).first;
-  }
+  /// @brief Return the best terminal state and associated reward reachable from
+  /// source within max_depth steps
+  std::tuple<int, double> path(int source, int max_depth) const;
 
   std::vector<std::tuple<int, double, int>> getEdges(int state) const override;
 
