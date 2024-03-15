@@ -50,8 +50,7 @@ void ShortestPathFasterAlgorithm::calculate(int N) {
 
           inQueue[v] = true;
           ++count[v];
-          if (count[v] >= N)
-            throw std::runtime_error("Negative cycle detected");
+          if (count[v] >= N) return;  // max depth reached
         }
       }
     }

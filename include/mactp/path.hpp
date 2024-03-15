@@ -45,8 +45,8 @@ class ShortestPathFasterAlgorithm {
   void calculate(int N);
 
  public:
-  ShortestPathFasterAlgorithm(int source, int max_nodes) : source(source) {
-    calculate(max_nodes);
+  ShortestPathFasterAlgorithm(int source, int max_depth) : source(source) {
+    calculate(max_depth);
   }
 
   /**
