@@ -17,7 +17,7 @@ class PathToTerminal : public ShortestPathFasterAlgorithm {
   PathToTerminal(SimInterface* sim) : sim(sim) {}
 
   /// @brief Return the best terminal state and associated reward reachable from
-  /// source within max_depth steps
+  /// source within max_depth steps. Does not account for discount factor.
   std::tuple<int, double> path(int source, int max_depth) const;
 
   std::vector<std::tuple<int, double, int>> getEdges(int state) const override;

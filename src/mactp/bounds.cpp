@@ -18,8 +18,16 @@ std::vector<std::tuple<int, double, int>> PathToTerminal::getEdges(
 
 std::tuple<int, double> PathToTerminal::path(int source, int max_depth) const {
   const auto [costs, pred] = calculate(source, max_depth);
-  const std::vector<std::pair<int, int>> p = reconstructPath(-1, pred);
-  return {p.at(p.size() - 2).first, -costs.at(-1)};
+  if (costs.contains(-1)) {
+    const std::vector<std::pair<int, int>> p = reconstructPath(-1, pred);
+    if (p.size() > 1) return {p.at(p.size() - 2).first, -costs.at(-1)};
+  }
+  const auto best_move = std::max_element(
+      costs.cbegin(), costs.cend(),
+      [](const std::pair<int, double>& p1, const std::pair<int, double>& p2) {
+        return p1.second < p2.second;
+      });
+  return *best_move;
 }
 
 }  // namespace CTP
