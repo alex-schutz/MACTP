@@ -1,2 +1,2 @@
-add_library(mactp_library simulator.cpp statespace.cpp)
+add_library(mactp_library simulator.cpp statespace.cpp path.cpp)
 target_link_libraries(mactp_library mcjesp_library)
