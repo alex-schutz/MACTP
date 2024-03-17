@@ -37,22 +37,41 @@ TEST(PathToTerminalTest, Path) {
   const auto ptt = PathToTerminal(&sim);
 
   {  // create terminal state, path should be length 1
-    const auto& [goal_node, reward] = ptt.path(23, 20);
+    const auto &[goal_node, reward] = ptt.path(23, 20);
     EXPECT_EQ(goal_node, 23);
     EXPECT_EQ(reward, 0.0);
   }
   {
-    // create start state with unblocked edge, actions should be
-    // 0 -> 1 -> -1 -> 2 -> -1
-    const auto& [goal_node, reward] = ptt.path(1, 20);
+    // create start state with unblocked edge
+    // states should be
+    // 4 -> 12 -> 14 -> 22 -> 23
+    // actions should be
+    // 1 -> -1 -> 2 -> -1
+    const auto &[goal_node, reward] = ptt.path(4, 20);
     EXPECT_EQ(goal_node, 23);
     EXPECT_EQ(reward, 18.0);
+
+    const std::vector<std::pair<int, int>> path_exp = {
+        {4, 1}, {12, 6}, {14, 2}, {22, 6}, {23, -1}};
+    const auto [costs, pred] = ptt.calculate(4, 20);
+    const auto path = ptt.reconstructPath(goal_node, pred);
+    EXPECT_EQ(path, path_exp);
   }
   {
-    // create start state with blocked edge, actions should be
-    // 0 -> 1 -> -1 -> 0 -> 5 -> 4 -> 3 -> 2 -> -1
-    const auto& [goal_node, reward] = ptt.path(0, 20);
+    // create start state with blocked edge
+    // states should be
+    // 0 -> 8 -> 10 -> 2 -> 42 -> 34 -> 26 -> 18 -> 19
+    // actions should be
+    // 1 -> -1 -> 0 -> 5 -> 4 -> 3 -> 2 -> -1
+    const auto &[goal_node, reward] = ptt.path(0, 20);
     EXPECT_EQ(goal_node, 19);
     EXPECT_EQ(reward, 14.0);
+
+    const std::vector<std::pair<int, int>> path_exp = {
+        {0, 1},  {8, 6},  {10, 0}, {2, 5},  {42, 4},
+        {34, 3}, {26, 2}, {18, 6}, {19, -1}};
+    const auto [costs, pred] = ptt.calculate(0, 20);
+    const auto path = ptt.reconstructPath(goal_node, pred);
+    EXPECT_EQ(path, path_exp);
   }
 }

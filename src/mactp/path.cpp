@@ -49,7 +49,7 @@ ShortestPathFasterAlgorithm::calculate(int source, int N) const {
 
     // Process each edge
     for (auto [v, w, label] : getEdges(u)) {
-      depth[v] = std::max(depth[v], depth[u] + 1);
+      if (v != u) depth[v] = std::max(depth[v], depth[u] + 1);
       if (depth[v] > N) return {d.map(), predecessor};  // max depth reached
       if (d[u] + w < d[v]) {
         d[v] = d[u] + w;
