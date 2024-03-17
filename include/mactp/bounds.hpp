@@ -4,6 +4,7 @@
 #include <SimInterface.h>
 
 #include <mactp/path.hpp>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace CTP {
@@ -26,5 +27,18 @@ class PathToTerminal : public ShortestPathFasterAlgorithm {
   SimInterface* sim;
   mutable std::unordered_set<int> terminalStates;
 };
+
+/**
+ * @brief Return an upper bound for the value of the belief.
+ *
+ * The upper bound value of the belief is the expected sum of each possible
+ * state's MDP value
+ *
+ * @param belief A map from state indices to probabilities.
+ * @param sim A POMDP simulator object
+ * @param max_depth Max depth of a simulation run
+ */
+double beliefUpperBound(const std::unordered_map<int, double>& belief,
+                        SimInterface* sim, int max_depth);
 
 }  // namespace CTP

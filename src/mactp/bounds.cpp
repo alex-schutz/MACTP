@@ -30,4 +30,15 @@ std::tuple<int, double> PathToTerminal::path(int source, int max_depth) const {
   return *best_move;
 }
 
+double beliefUpperBound(const std::unordered_map<int, double>& belief,
+                        SimInterface* sim, int max_depth) {
+  auto ptt = PathToTerminal(sim);
+
+  double V_upper_bound = 0.0;
+  for (const auto& [state, prob] : belief)
+    V_upper_bound += prob * std::get<1>(ptt.path(state, max_depth));
+
+  return V_upper_bound;
+}
+
 }  // namespace CTP
