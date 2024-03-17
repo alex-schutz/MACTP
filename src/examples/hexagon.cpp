@@ -21,16 +21,6 @@ const vector<int> params_pomcp_nb_rollout = {1, 200, 100, 200, 1};
 const vector<int> params_pomcp_depth = {20, 40, 20, 15, 10};
 const double pomcp_epsilon = 0.01;
 
-std::ostream &operator<<(std::ostream &os,
-                         const std::map<std::string, int> &myMap) {
-  os << "{\n";
-  for (const auto &pair : myMap) {
-    os << pair.first << ": " << pair.second << ",\n";
-  }
-  os << "}";
-  return os;
-}
-
 int main() {
   // 6 nodes, connected in a hexagon
   const std::vector<int> nodes = {0, 1, 2, 3, 4, 5};

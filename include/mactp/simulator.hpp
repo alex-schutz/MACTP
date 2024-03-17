@@ -129,6 +129,10 @@ class MACTP : public SimInterface {
     return actionSpace.map().at(std::to_string(agentI)).size();
   }
 
+  std::string stateToString(int state) const;
+  std::string actionToString(int action) const;
+  std::string observationToString(int obs) const;
+
  private:
   StateSpace initialiseStateSpace() const;
   StateSpace initialiseIndividualObservationSpace() const;

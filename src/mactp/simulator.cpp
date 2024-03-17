@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <mactp/simulator.hpp>
+#include <sstream>
 #include <unordered_set>
 
 namespace CTP {
@@ -322,6 +323,33 @@ std::vector<int> MACTP::computeReachableGoals(int state) const {
     if (reachable(_nodes[0], g, state)) reachable_goals.push_back(g);
 
   return reachable_goals;
+}
+
+std::ostream &operator<<(std::ostream &os,
+                         const std::map<std::string, int> &map) {
+  os << "{\n";
+  for (const auto &pair : map) os << pair.first << ": " << pair.second << ",\n";
+  os << "}";
+  return os;
+}
+
+std::string MACTP::stateToString(int state) const {
+  std::stringstream ss;
+  ss << stateSpace.at(state);
+  return ss.str();
+}
+std::string MACTP::actionToString(int action) const {
+  std::stringstream ss;
+  ss << actionSpace.at(action);
+  return ss.str();
+}
+std::string MACTP::observationToString(int obs) const {
+  std::stringstream ss;
+  ss << "{\n";
+  for (const auto [agent, ob] : observationSpace.at(obs))
+    ss << agent << ": " << individualObservationSpace.at(ob) << ",\n";
+  ss << "}";
+  return ss.str();
 }
 
 }  // namespace CTP
