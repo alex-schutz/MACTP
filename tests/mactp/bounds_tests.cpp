@@ -132,3 +132,168 @@ TEST(PathToTerminalTest, UnachievableGoalPath) {
     EXPECT_EQ(reward, 18.0);
   }
 }
+
+TEST(PathToTerminalTest, PathTree) {
+  // 6 nodes, connected in a hexagon
+  const std::vector<int> nodes = {0, 1, 2, 3, 4, 5};
+  const std::vector<std::pair<int, int>> edges = {{0, 1}, {1, 2}, {2, 3},
+                                                  {3, 4}, {4, 5}, {0, 5}};
+  const std::unordered_map<std::pair<int, int>, double, pairhash>
+      stochastic_edges = {{{1, 2}, 0.5}};
+  const std::vector<int> abs_goals = {2};
+  const std::vector<int> nonabs_goals = {1};
+  const std::unordered_map<int, int> goal_ach = {{1, 1}, {2, 1}};
+  MACTP sim = generateSim(nodes, edges, stochastic_edges, abs_goals,
+                          nonabs_goals, goal_ach);
+  const auto ptt = PathToTerminal(&sim);
+
+  ptt.path(23, 20);
+  ptt.path(4, 20);
+  ptt.path(0, 20);
+  ptt.path(46, 20);
+
+  const std::unordered_map<int, std::shared_ptr<PathToTerminal::PathNode>>
+      tree = ptt.buildPathTree();
+
+  {
+    // states should be
+    // 23
+    // actions should be
+    // null
+    auto node = tree.at(23);
+    EXPECT_EQ(node->action, -1);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(23));
+    EXPECT_EQ(node->nextNode, nullptr);
+  }
+  {
+    // states should be
+    // 4 -> 12 -> 14 -> 22 -> 23
+    // actions should be
+    // 1 -> -1 -> 2 -> -1
+    auto node = tree.at(4);
+    EXPECT_EQ(node->action, 1);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(4));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 6);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(12));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 2);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(14));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 6);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(22));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, -1);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(23));
+    EXPECT_EQ(node->nextNode, nullptr);
+  }
+  {
+    // states should be
+    // 0 -> 8 -> 10 -> 2 -> 42 -> 34 -> 26 -> 18 -> 19
+    // actions should be
+    // 1 -> -1 -> 0 -> 5 -> 4 -> 3 -> 2 -> -1
+    auto node = tree.at(0);
+    EXPECT_EQ(node->action, 1);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(0));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 6);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(8));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 0);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(10));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 5);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(2));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 4);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(42));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 3);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(34));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 2);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(26));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 6);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(18));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, -1);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(19));
+    EXPECT_EQ(node->nextNode, nullptr);
+  }
+
+  {
+    // states should be
+    // 46 -> 6 -> 14 -> 22 -> 23
+    // actions should be
+    // 0 -> 1 -> 2 -> -1
+    auto node = tree.at(46);
+    EXPECT_EQ(node->action, 0);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(46));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 1);
+    EXPECT_EQ(node->states.size(), 1);
+    EXPECT_TRUE(node->states.contains(6));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 2);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(14));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, 6);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(22));
+    EXPECT_NE(node->nextNode, nullptr);
+
+    node = node->nextNode;
+    EXPECT_EQ(node->action, -1);
+    EXPECT_EQ(node->states.size(), 2);
+    EXPECT_TRUE(node->states.contains(23));
+    EXPECT_EQ(node->nextNode, nullptr);
+  }
+}
